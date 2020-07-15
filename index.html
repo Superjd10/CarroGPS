@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<meta charset="utf-8">
+<title>Geolocalización de Vehículos</title>
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:700|Roboto:700&display=swap" rel="stylesheet">
+    <style>
+        #map {
+                height: 100%;
+            }
+            html, body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            #over_map {
+                position: absolute;
+                top: 10px;
+                left: 83%;
+                z-index: 99;
+                background-color: #ccffcc;
+                padding: 10px;
+            }
+            #button_over_map {
+                position: absolute;
+                top: 80%;
+                left: 38%;
+                z-index: 99;
+                background-color: #ccffcc;
+                padding: 10px;
+            }
+            .button {
+                background-color: #008CBA; /* Green */
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 20px;
+            }
+    </style>
+    <script>
+            var mapStyles = [
+          {
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#f5f5f5"
+              }
+            ]
+          },
+          {
+            "elementType": "labels.icon",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#616161"
+              }
+            ]
+          },
+          {
+            "elementType": "labels.text.stroke",
+            "stylers": [
+              {
+                "color": "#f5f5f5"
+              }
+            ]
+          },
+          {
+            "featureType": "administrative.land_parcel",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#bdbdbd"
+              }
+            ]
+          },
+          {
+            "featureType": "administrative.locality",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "administrative.neighborhood",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "poi",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#eeeeee"
+              }
+            ]
+          },
+          {
+            "featureType": "poi",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#757575"
+              }
+            ]
+          },
+          {
+            "featureType": "poi.park",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#e5e5e5"
+              }
+            ]
+          },
+          {
+            "featureType": "poi.park",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#9e9e9e"
+              }
+            ]
+          },
+          {
+            "featureType": "road",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#ffffff"
+              }
+            ]
+          },
+          {
+            "featureType": "road.arterial",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#757575"
+              }
+            ]
+          },
+          {
+            "featureType": "road.highway",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#dadada"
+              }
+            ]
+          },
+          {
+            "featureType": "road.highway",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#616161"
+              }
+            ]
+          },
+          {
+            "featureType": "road.local",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#9e9e9e"
+              }
+            ]
+          },
+          {
+            "featureType": "transit.line",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#e5e5e5"
+              }
+            ]
+          },
+          {
+            "featureType": "transit.station",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#eeeeee"
+              }
+            ]
+          },
+          {
+            "featureType": "water",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#c9c9c9"
+              }
+            ]
+          },
+          {
+            "featureType": "water",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#9e9e9e"
+              }
+            ]
+          }
+        ];
+    </script>
+</head>
+<body>
+<div id="map"></div>
+<div id="over_map">
+<div>
+<span>Vehículos rastreados: </span><span id="cars">0</span>
+</div>
+</div>
+<div id="button_over_map">
+<a href="https://josedanield10.com/" class="button">Realizado por José Daniel Durán</a>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js" type="50ad14da9b27a7bc208c86f8-text/javascript"></script>
+
+<script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-database.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#config-web-app -->
+
+<script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyDAQvchm10h1Iz-T8BNvzjLFOboukLzNPY",
+    authDomain: "geolocalizaciongpsnodemcu.firebaseapp.com",
+    databaseURL: "https://geolocalizaciongpsnodemcu.firebaseio.com",
+    projectId: "geolocalizaciongpsnodemcu",
+    storageBucket: "geolocalizaciongpsnodemcu.appspot.com",
+    messagingSenderId: "423677859396",
+    appId: "1:423677859396:web:c5e2fd16ae61ce43"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+</script>
+<script type="text/javascript">
+            firebase.database().ref('/Carro1/lat').once('value').then(function(snapshot) {
+  console.log(snapshot);
+});
+            // counter for online cars...
+            var cars_count = 0;
+            // markers array to store all the markers, so that we could remove marker when any car goes offline and its data will be remove from realtime database...
+            var markers = [];
+            var map;
+            function initMap() { // Google Map Initialization... 
+                map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 16,
+                    center: new google.maps.LatLng(7.897961, -72.486839),
+                    mapTypeId: 'terrain'
+                });
+                map.setOptions({styles: mapStyles});
+            }
+            // This Function will create a car icon with angle and add/display that marker on the map
+            function AddCar(data) {
+                var icon = { // car icon
+                    path: 'M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759   c3.116,0,5.644-2.527,5.644-5.644V6.584C35.037,3.467,32.511,0,29.395,0z M34.05,14.188v11.665l-2.729,0.351v-4.806L34.05,14.188z    M32.618,10.773c-1.016,3.9-2.219,8.51-2.219,8.51H16.631l-2.222-8.51C14.41,10.773,23.293,7.755,32.618,10.773z M15.741,21.713   v4.492l-2.73-0.349V14.502L15.741,21.713z M13.011,37.938V27.579l2.73,0.343v8.196L13.011,37.938z M14.568,40.882l2.218-3.336   h13.771l2.219,3.336H14.568z M31.321,35.805v-7.872l2.729-0.355v10.048L31.321,35.805',
+                    scale: 0.4,
+                    fillColor: "#427af4", // Color del vehiculo, al ser SVG se puede cambiar
+                    fillOpacity: 1,
+                    strokeWeight: 1,
+                    anchor: new google.maps.Point(0, 5),
+                    labelOrigin: { x: 10, y: -16}, // Reposicionar velocidad del vehiculo
+                    rotation: data.val().angle //<-- Angulo del carro
+                };
+                var uluru = { lat: data.val().lat, lng: data.val().lng };
+                
+                var marker = new google.maps.Marker({
+                    position: uluru,
+                    icon: icon,
+                    map: map,
+                    title: String(data.val().vel),
+                    label: {
+                        text: String(data.val().vel) + " kph",
+                        color: 'rgba(0,0,0, 1)',
+                        fontSize: '12px',
+                        fontFamily: 'Open Sans'
+                    }
+                });
+
+                markers[data.key] = marker; // Agregar marcador
+                document.getElementById("cars").innerHTML = cars_count;
+                map.panTo({lat: data.val().lat, lng: data.val().lng});
+            }
+            // get firebase database reference...
+            var cars_Ref = firebase.database().ref('/');
+            // this event will be triggered when a new object will be added in the database...
+            cars_Ref.on('child_added', function (data) {
+                console.log("Se detectó nuevo vehiculo");
+                cars_count++;
+                AddCar(data);
+            });
+            // this event will be triggered on location change of any car...
+            cars_Ref.on('child_changed', function (data) {
+                console.log("Se detectó cambio de posición");
+                markers[data.key].setMap(null);
+                AddCar(data);
+            });
+            // If any car goes offline then this event will get triggered and we'll remove the marker of that car...  
+            cars_Ref.on('child_removed', function (data) {
+                console.log("Se perdió el contacto con un vehiculo");
+                markers[data.key].setMap(null);
+                cars_count--;
+                document.getElementById("cars").innerHTML = cars_count;
+            });
+        </script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoqpKns-WFaI1lgfeyMQj5-63SOs5kWB0&callback=initMap&maptype=roadmap&style=element:geometry%7Ccolor:0xf5f5f5" type="50ad14da9b27a7bc208c86f8-text/javascript">
+        </script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/95c75768/cloudflare-static/rocket-loader.min.js" data-cf-settings="50ad14da9b27a7bc208c86f8-|49" defer=""></script></body>
+</html>
